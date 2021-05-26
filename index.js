@@ -6,6 +6,10 @@ module.exports = {
   PluginDesc: {
     name: 'Inbenta',
     provider: 'Inbenta',
+    features: {
+      intentResolution: true,
+      intentConfidenceScore: true
+    },
     capabilities: [
       {
         name: 'INBENTA_API_KEY',
