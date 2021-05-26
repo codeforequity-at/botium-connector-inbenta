@@ -60,7 +60,5 @@ typings/
 # next.js build output
 .next
 
-dist
 botium.local.json
-/.idea
-/samples/convo/botium.json
+src/test.js
