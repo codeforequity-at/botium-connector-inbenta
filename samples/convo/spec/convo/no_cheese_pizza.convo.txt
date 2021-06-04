@@ -1,5 +1,8 @@
 No cheese pizza
 
+#bot
+Hi, how can I help you?
+
 #me
 help
 

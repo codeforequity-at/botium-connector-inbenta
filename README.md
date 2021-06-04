@@ -92,4 +92,7 @@ Language of the bot, represented by its ISO 639-1 code.
 ### INBENTA_TIMEZONE
 User timezone with a valid TZ database name value. If this attribute is set, user's local time will be added in the conversation history.
 
+### INBENTA_SKIP_WELCOME_MESSAGE
+Skip welcome message request on conversation start.
+
 Example: "America/New_York"

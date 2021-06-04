@@ -11,7 +11,8 @@ const Capabilities = {
   INBENTA_USER_TYPE: 'INBENTA_USER_TYPE',
   INBENTA_ENV: 'INBENTA_ENV',
   INBENTA_LANG: 'INBENTA_LANG',
-  INBENTA_TIMEZONE: 'INBENTA_TIMEZONE'
+  INBENTA_TIMEZONE: 'INBENTA_TIMEZONE',
+  INBENTA_SKIP_WELCOME_MESSAGE: 'INBENTA_SKIP_WELCOME_MESSAGE'
 }
 
 const PATH_AUTH = '/auth'
@@ -49,12 +50,15 @@ class BotiumConnectorInbentaWebhook {
     debug('Start called')
     await this._authAndAccessTokenWeak()
     await this._startConversation()
+    if (_.isNil(this.caps[Capabilities.INBENTA_SKIP_WELCOME_MESSAGE]) || !this.caps[Capabilities.INBENTA_SKIP_WELCOME_MESSAGE]) {
+      await this._sendMessage({ justWelcomeMessage: true })
+    }
   }
 
   async UserSays (msg) {
     debug(`UserSays called ${util.inspect(msg)}`)
     await this._authAndAccessTokenWeak()
-    this._sendMessage(msg)
+    await this._sendMessage({ msg })
   }
 
   async Stop () {
@@ -99,13 +103,13 @@ class BotiumConnectorInbentaWebhook {
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
       }
       if (!body.accessToken) {
-        debug(`Access token not found in auth response ${JSON.stringify(res)}`)
-        throw new Error('Access token not found in auth response', res)
+        debug(`Access token not found in auth response ${JSON.stringify(body)}`)
+        throw new Error('Access token not found in auth response', body)
       }
       this.accessToken = body.accessToken
       if (!body.apis || !body.apis.chatbot) {
-        debug(`Chatbot API not found in auth response ${JSON.stringify(res)}`)
-        throw new Error('Chatbot API not found in auth response', res)
+        debug(`Chatbot API not found in auth response ${JSON.stringify(body)}`)
+        throw new Error('Chatbot API not found in auth response', body)
       }
       this.chatbotAPI = `${body.apis.chatbot}/${this.apiVersion}`
       this.expiration = body.expiration
@@ -167,7 +171,7 @@ class BotiumConnectorInbentaWebhook {
     })
   }
 
-  async _sendMessage (msg) {
+  async _sendMessage ({ msg, justWelcomeMessage }) {
     const headers = {
       // eslint-disable-next-line quote-props
       'Authorization': `Bearer ${this.accessToken}`,
@@ -176,7 +180,11 @@ class BotiumConnectorInbentaWebhook {
     }
     let body
 
-    if (msg.buttons && msg.buttons.length > 0 && (msg.buttons[0].payload || msg.buttons[0].text)) {
+    if (justWelcomeMessage) {
+      body = {
+        directCall: 'sys-welcome'
+      }
+    } else if (msg.buttons && msg.buttons.length > 0 && (msg.buttons[0].payload || msg.buttons[0].text)) {
       body = {
         option: msg.buttons[0].payload || msg.buttons[0].text
       }
@@ -209,11 +217,11 @@ class BotiumConnectorInbentaWebhook {
       for (const a of answers) {
         const botMsg = { sourceData: a, messageText: normalize(a.messageList.join(' ')) }
         let intent
-        if (a.attributes && a.attributes.title) {
-          intent = { name: a.attributes.title, confidence: a.intent ? a.intent.score : null }
-        } else if (a.parameters && a.parameters.contents && a.parameters.contents.title) {
-          // teoretically its the same as attributes.title, but who knows?
+        if (a.parameters && a.parameters.contents && a.parameters.contents.title) {
           intent = { name: a.parameters.contents.title, confidence: a.intent ? a.intent.score : null }
+        } else if (a.attributes && a.attributes.title) {
+          // teoretically its the same, but who knows?
+          intent = { name: a.attributes.title, confidence: a.intent ? a.intent.score : null }
         } else if (a.intent) {
           intent = { name: a.intent.type, confidence: a.intent.score }
         }

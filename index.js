@@ -57,6 +57,13 @@ module.exports = {
         type: 'int',
         required: false,
         advanced: true
+      },
+      {
+        name: 'INBENTA_SKIP_WELCOME_MESSAGE',
+        label: 'Skip welcome message request on conversation start',
+        type: 'boolean',
+        required: false,
+        advanced: true
       }
     ]
   }
