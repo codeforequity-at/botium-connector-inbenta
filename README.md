@@ -19,10 +19,10 @@ It can be used as any other Botium connector with all Botium Stack components:
 ## Requirements
 
 * __Node.js and NPM__
-* a __Inbenta chatbot with [Webhook channel](https://developer.kore.ai/docs/bots/bot-builder/adding-channels-to-your-bot/adding-webhook-channel/) enabled__
+* a __Inbenta chatbot__
 * a __project directory__ on your workstation to hold test cases and Botium configuration
 
-## Install Botium and Kore.ai Webhook Connector
+## Install Botium and Inbenta Webhook Connector
 
 When using __Botium CLI__:
 
@@ -69,10 +69,10 @@ Botium setup is ready, you can begin to write your [BotiumScript](https://github
 Set the capability __CONTAINERMODE__ to __inbenta__ to activate this connector.
 
 ### INBENTA_API_KEY
-The API KEY from Inbenta App
+The API KEY from Inbenta App ([Inbenta API Credentials ](https://help.inbenta.com/en/general/inbenta-app/administration/managing-credentials-for-developers/finding-your-instance-s-api-credentials/))
 
 ### INBENTA_SECRET
-The SECRET from Inbenta App
+The SECRET from Inbenta App ([Inbenta API Credentials ](https://help.inbenta.com/en/general/inbenta-app/administration/managing-credentials-for-developers/finding-your-instance-s-api-credentials/))
 
 ### INBENTA_SOURCE
 Source identifier (e.g. facebook, mobile, etc.) used to filter the logs in the Dashboards. You can use any value.
@@ -87,12 +87,15 @@ Resource environment from the Inbenta knowledge base to which the request is app
  - development: This environment retrieves the contents/categories published in edit.
 
 ### INBENTA_LANG
-Language of the bot, represented by its ISO 639-1 code.
+Language of the bot, represented by its ISO 639-1 code. 
+
+Default: "en"
 
 ### INBENTA_TIMEZONE
 User timezone with a valid TZ database name value. If this attribute is set, user's local time will be added in the conversation history.
 
+Example: "America/New_York"
+
 ### INBENTA_SKIP_WELCOME_MESSAGE
 Skip welcome message request on conversation start.
 
-Example: "America/New_York"
