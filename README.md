@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/botium-connector-inbenta.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/botium-connector-inbenta/)
 
-[![Codeship Status for codeforequity-at/botium-connector-inbenta](https://app.codeship.com/projects/913b9260-f570-0136-2f32-1e71af04627f/status?branch=master)](https://app.codeship.com/projects/320855)
+[![Codeship Status for codeforequity-at/botium-connector-inbenta](https://app.codeship.com/projects/e1c0928f-b1b3-4324-a60a-39711c26b9f0/status?branch=master)](https://app.codeship.com/projects/446752)
 [![npm version](https://badge.fury.io/js/botium-connector-inbenta.svg)](https://badge.fury.io/js/botium-connector-inbenta)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)]()
 
@@ -62,7 +62,6 @@ Open the file _botium.json_ in your working directory and add the Webhook settin
   }
 }
 ```
-Botium setup is ready, you can begin to write your [BotiumScript](https://github.com/codeforequity-at/botium-core/wiki/Botium-Scripting) files.
 
 ## Supported Capabilities
 
