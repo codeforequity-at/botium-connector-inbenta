@@ -1,16 +1,16 @@
 {
-  "name": "botium-connector-koreai-webhook",
+  "name": "botium-connector-inbenta",
   "version": "0.0.1",
-  "description": "Botium Connector for Kore.ai Webhooks",
-  "main": "dist/botium-connector-koreai-webhook-cjs.js",
-  "module": "dist/botium-connector-koreai-webhook-es.js",
+  "description": "Botium Connector for Inbenta",
+  "main": "dist/botium-connector-inbenta-cjs.js",
+  "module": "dist/botium-connector-inbenta-es.js",
   "scripts": {
     "build": "npm run eslint && rollup -c",
     "eslint": "eslint index.js src/**/*.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codeforequity-at/botium-connector-koreai-webhook.git"
+    "url": "git+https://github.com/codeforequity-at/botium-connector-inbenta.git"
   },
   "author": "Botium GmbH",
   "license": "MIT",

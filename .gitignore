@@ -63,4 +63,4 @@ typings/
 dist
 botium.local.json
 /.idea
-/samples/convo/botium.json
+/samples/convo/botium.local.json

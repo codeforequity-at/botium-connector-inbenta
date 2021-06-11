@@ -1,0 +1,10 @@
+{
+  "botium": {
+    "Capabilities": {
+      "PROJECTNAME": "botium-inbenta-convo-sample",
+      "CONTAINERMODE": "inbenta",
+      "INBENTA_API_KEY": "...",
+      "INBENTA_SECRET": "..."
+    }
+  }
+}
