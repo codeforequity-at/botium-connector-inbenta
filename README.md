@@ -62,7 +62,6 @@ Open the file _botium.json_ in your working directory and add the Webhook settin
   }
 }
 ```
-Botium setup is ready, you can begin to write your [BotiumScript](https://github.com/codeforequity-at/botium-core/wiki/Botium-Scripting) files.
 
 ## Supported Capabilities
 
