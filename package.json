@@ -5,7 +5,7 @@
   "main": "dist/botium-connector-inbenta-cjs.js",
   "module": "dist/botium-connector-inbenta-es.js",
   "scripts": {
-    "build": "npm run eslint && rollup -c",
+    "build": "npm run eslint && rollup -c && cp logo.png dist",
     "eslint": "eslint index.js src/**/*.js"
   },
   "repository": {
