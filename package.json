@@ -1,6 +1,6 @@
 {
   "name": "botium-connector-inbenta",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Botium Connector for Inbenta",
   "main": "dist/botium-connector-inbenta-cjs.js",
   "module": "dist/botium-connector-inbenta-es.js",
