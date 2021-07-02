@@ -1,5 +1,8 @@
 No cheese pizza, buttons
 
+#bot
+Hi, how can I help you?
+
 #me
 help
 
@@ -7,10 +10,6 @@ help
 INTENT AIML
 INTENT_CONFIDENCE 100
 Helping you is my #1 priority. What would you like to know?
-
-#bot
-Hi, how can I help you?
-
 
 #me
 Order pizza
@@ -25,7 +24,7 @@ Please choose!
 BUTTONS Cheese|Hawaiian
 
 #me
-BUTTONS Cheese
+BUTTON Cheese
 
 #bot
 INTENT Cheese

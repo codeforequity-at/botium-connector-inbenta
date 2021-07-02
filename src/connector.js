@@ -186,7 +186,7 @@ class BotiumConnectorInbentaWebhook {
       }
     } else if (msg.buttons && msg.buttons.length > 0 && (msg.buttons[0].payload || msg.buttons[0].text)) {
       body = {
-        option: msg.buttons[0].payload || msg.buttons[0].text
+        message: msg.buttons[0].payload || msg.buttons[0].text
       }
     } else {
       body = {
@@ -240,7 +240,8 @@ class BotiumConnectorInbentaWebhook {
         if (a.type === 'answer' && a.messageList && a.messageList.length) {
           setTimeout(() => this.queueBotSays(botMsg), 0)
         } else if (a.type === 'polarQuestion' || a.type === 'multipleChoiceQuestion') {
-          botMsg.buttons = a.options.map(b => { return { text: b.label, payload: b.value } })
+          // inbenta uses Int as value, but core does not like it
+          botMsg.buttons = a.options.map(b => { return { text: b.label, payload: _.toString(b.value) } })
           setTimeout(() => this.queueBotSays(botMsg), 0)
         }
       }
