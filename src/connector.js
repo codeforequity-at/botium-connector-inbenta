@@ -185,8 +185,15 @@ class BotiumConnectorInbentaWebhook {
         directCall: 'sys-welcome'
       }
     } else if (msg.buttons && msg.buttons.length > 0 && (msg.buttons[0].payload || msg.buttons[0].text)) {
-      body = {
-        message: msg.buttons[0].payload || msg.buttons[0].text
+      if (msg.buttons[0].payload) {
+        body = {
+          option: msg.buttons[0].payload
+        }
+      } else {
+        // not official
+        body = {
+          message: msg.buttons[0].text
+        }
       }
     } else {
       body = {

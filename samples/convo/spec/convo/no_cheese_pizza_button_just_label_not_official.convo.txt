@@ -1,4 +1,4 @@
-No cheese pizza, button
+No cheese pizza, button just label not official
 
 #bot
 Hi, how can I help you?
@@ -24,7 +24,7 @@ Please choose!
 BUTTONS Cheese|Hawaiian
 
 #me
-BUTTON 22
+BUTTON 22|Cheese
 
 #bot
 INTENT Cheese
