@@ -18,6 +18,7 @@ const Capabilities = {
 const PATH_AUTH = '/auth'
 const PATH_CONVERSATION = '/conversation'
 const PATH_CONVERSATION_MESSAGE = '/conversation/message'
+const PATH_TRACKING_EVENTS = '/tracking/events'
 
 // sec. we cant get access token if its already expired. We need a small gap there
 const MIN_TOKEN_TTL = 5
@@ -185,7 +186,31 @@ class BotiumConnectorInbentaWebhook {
         directCall: 'sys-welcome'
       }
     } else if (msg.buttons && msg.buttons.length > 0 && (msg.buttons[0].payload || msg.buttons[0].text)) {
-      if (msg.buttons[0].payload) {
+      let payload = msg.buttons[0].payload
+      if (payload) {
+        try {
+          payload = JSON.parse(payload)
+          if (payload.type === 'rate') {
+            const requestOptions = {
+              uri: this.chatbotAPI + PATH_TRACKING_EVENTS,
+              method: 'POST',
+              headers,
+              body: payload,
+              json: true,
+              transform: _includeRequest
+            }
+            return rp(requestOptions).then(({ response, body }) => {
+              if (response.statusCode >= 400) {
+                debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
+                throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
+              }
+              debug('Rate event sent succesful')
+            }).catch(err => {
+              debug(`Failed to send event ${err}`)
+              throw new Error(`Failed to send event ${err}`)
+            })
+          }
+        } catch (err) {}
         body = {
           option: msg.buttons[0].payload
         }
@@ -201,8 +226,6 @@ class BotiumConnectorInbentaWebhook {
       }
     }
 
-    // removing html, and new line
-    const normalize = (s) => s.replace(/<[^>]*>?/gm, '').replace('\n', ' ')
     const requestOptions = {
       uri: this.chatbotAPI + PATH_CONVERSATION_MESSAGE,
       method: 'POST',
@@ -222,7 +245,7 @@ class BotiumConnectorInbentaWebhook {
       debug(`Conversation response: ${JSON.stringify(body, null, 2)}`)
       const answers = body.answers || []
       for (const a of answers) {
-        const botMsg = { sourceData: a, messageText: normalize(a.messageList.join(' ')) }
+        const botMsg = { sourceData: a, messageText: a.messageList.join(' '), buttons: [] }
         let intent
         if (a.parameters && a.parameters.contents && a.parameters.contents.title) {
           intent = { name: a.parameters.contents.title, confidence: a.intent ? a.intent.score : null }
@@ -233,7 +256,7 @@ class BotiumConnectorInbentaWebhook {
           intent = { name: a.intent.type, confidence: a.intent.score }
         }
         if (intent) {
-          if (intent.name === 'No Results') {
+          if (intent.name === 'No Results' || intent.name === 'High Number of Unknown Words') {
             intent.incomprehension = true
           }
           // Inbenta returns confidence score between 0 and 2. Dividing by 2 does not looks as a good idea,
@@ -244,11 +267,26 @@ class BotiumConnectorInbentaWebhook {
           botMsg.nlp = { intent }
         }
 
+        if (a.attributes && a.attributes.SIDEBUBBLE_TEXT) {
+          botMsg.messageText += a.attributes.SIDEBUBBLE_TEXT
+        }
+
+        if ((a.parameters && a.parameters.contents && a.parameters.contents.trackingCode && a.parameters.contents.trackingCode.rateCode) &&
+            (!a.flags || !a.flags.includes('no-rating')) &&
+            (!a.attributes || !a.attributes.RATINGS !== 'FALSE')
+        ) {
+          botMsg.messageText += '<p>Was this answer helpful?</p>'
+          botMsg.buttons = botMsg.buttons.concat([
+            { text: 'yes', payload: JSON.stringify({ type: 'rate', data: { value: '2', code: a.parameters.contents.trackingCode.rateCode } }) },
+            { text: 'no', payload: JSON.stringify({ type: 'rate', data: { value: '1', code: a.parameters.contents.trackingCode.rateCode } }) }
+          ])
+        }
+
         if (a.type === 'answer' && a.messageList && a.messageList.length) {
           setTimeout(() => this.queueBotSays(botMsg), 0)
         } else if (a.type === 'polarQuestion' || a.type === 'multipleChoiceQuestion') {
           // inbenta uses Int as value, but core does not like it
-          botMsg.buttons = a.options.map(b => { return { text: b.label, payload: _.toString(b.value) } })
+          botMsg.buttons = botMsg.buttons.concat(a.options.map(b => { return { text: b.label, payload: _.toString(b.value) } }))
           setTimeout(() => this.queueBotSays(botMsg), 0)
         }
       }

@@ -81,9 +81,9 @@ Profile identifier from the Inbenta Backstage knowledge base. Minimum:0. Default
 
 ### INBENTA_ENV
 Resource environment from the Inbenta knowledge base to which the request is applied. Each environment logs the data for the reports displayed in Inbenta dashboards separately. Possible values:
- - production (default): This environment retrieves the contents/categories published in live.
+ - production: This environment retrieves the contents/categories published in live.
  - preproduction: This environment retrieves the contents/categories published in live.
- - development: This environment retrieves the contents/categories published in edit.
+ - development (default): This environment retrieves the contents/categories published in edit.
 
 ### INBENTA_LANG
 Language of the bot, represented by its ISO 639-1 code. 
