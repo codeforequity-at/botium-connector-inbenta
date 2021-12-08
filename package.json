@@ -4,6 +4,9 @@
   "description": "Botium Connector for Inbenta",
   "main": "dist/botium-connector-inbenta-cjs.js",
   "module": "dist/botium-connector-inbenta-es.js",
+  "bin": {
+    "botium-connector-inbenta-cli": "./bin/cli.js"
+  },
   "scripts": {
     "build": "npm run eslint && rollup -c && cp logo.png dist",
     "eslint": "eslint index.js src/**/*.js"
@@ -19,27 +22,30 @@
   },
   "homepage": "https://github.com/codeforequity-at/botium-core",
   "devDependencies": {
-    "@babel/core": "^7.12.13",
-    "@babel/node": "^7.12.13",
-    "@babel/plugin-transform-runtime": "^7.12.15",
-    "@babel/preset-env": "^7.12.13",
-    "eslint": "^7.26.0",
-    "eslint-config-standard": "^16.0.2",
-    "eslint-plugin-import": "^2.23.2",
+    "@babel/core": "^7.16.0",
+    "@babel/node": "^7.16.0",
+    "@babel/plugin-transform-runtime": "^7.16.4",
+    "@babel/preset-env": "^7.16.4",
+    "eslint": "^8.4.1",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-promise": "^5.2.0",
     "eslint-plugin-standard": "^5.0.0",
-    "rollup": "^2.38.5",
+    "rollup": "^2.60.2",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.12.13",
-    "debug": "^4.3.1",
+    "@babel/runtime": "^7.16.3",
+    "debug": "^4.3.3",
     "lodash": "^4.17.21",
+    "mkdirp": "^1.0.4",
     "request": "^2.88.2",
-    "request-promise": "^4.2.6"
+    "request-promise-native": "^1.0.9",
+    "slug": "^5.1.0",
+    "yargs": "^17.3.0"
   }
 }

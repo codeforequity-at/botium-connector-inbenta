@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha spec"
+    "test": "mocha spec",
+    "download-intents": "botium-connector-inbenta-cli import --output ./spec/inbenta-intents"
   },
   "author": "",
   "license": "ISC",

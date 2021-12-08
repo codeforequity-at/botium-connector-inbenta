@@ -97,4 +97,3 @@ Example: "America/New_York"
 
 ### INBENTA_SKIP_WELCOME_MESSAGE
 Skip welcome message request on conversation start.
-
