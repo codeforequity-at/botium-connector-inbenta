@@ -61,6 +61,7 @@ typings/
 .next
 
 dist
+package-lock.json
 botium.local.json
 /.idea
 /samples/convo/botium.local.json

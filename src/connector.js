@@ -1,5 +1,5 @@
 const util = require('util')
-const rp = require('request-promise')
+const rp = require('request-promise-native')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-inbenta-webhook')
 

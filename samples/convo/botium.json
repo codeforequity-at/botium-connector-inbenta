@@ -4,7 +4,10 @@
       "PROJECTNAME": "botium-inbenta-convo-sample",
       "CONTAINERMODE": "inbenta",
       "INBENTA_API_KEY": "...",
-      "INBENTA_SECRET": "..."
+      "INBENTA_SECRET": "...",
+      "INBENTA_EDITOR_API_KEY": "...",
+      "INBENTA_EDITOR_SECRET": "...",
+      "INBENTA_EDITOR_PERSONAL_SECRET": "..."
     }
   }
 }

@@ -1,19 +1,26 @@
 const fs = require('fs')
 const path = require('path')
 const PluginClass = require('./src/connector')
+const { importHandler, importArgs } = require('./src/intents')
 
 const logo = fs.readFileSync(path.join(__dirname, 'logo.png')).toString('base64')
 
 module.exports = {
   PluginVersion: 1,
   PluginClass: PluginClass,
+  Import: {
+    Handler: importHandler,
+    Args: importArgs
+  },
   PluginDesc: {
     name: 'Inbenta',
     provider: 'Inbenta',
     avatar: logo,
     features: {
       intentResolution: true,
-      intentConfidenceScore: true
+      intentConfidenceScore: true,
+      testCaseGeneration: true,
+      testCaseExport: false
     },
     capabilities: [
       {
@@ -69,6 +76,30 @@ module.exports = {
         type: 'boolean',
         required: false,
         advanced: true
+      },
+      {
+        name: 'INBENTA_EDITOR_API_KEY',
+        label: 'Chatbot Editor API key',
+        description: 'Used for downloading NLU model only. You can find this in Administration / Chatbot Editor API',
+        type: 'string',
+        required: false,
+        advanced: false
+      },
+      {
+        name: 'INBENTA_EDITOR_SECRET',
+        label: 'Chatbot Editor API secret',
+        description: 'Used for downloading NLU model only. You can find this in Administration / Chatbot Editor API',
+        type: 'secret',
+        required: false,
+        advanced: false
+      },
+      {
+        name: 'INBENTA_EDITOR_PERSONAL_SECRET',
+        label: 'Personal secret token',
+        description: 'Used for downloading NLU model only. You can find this in My Account / Personal Secret Tokens',
+        type: 'secret',
+        required: false,
+        advanced: false
       }
     ]
   }
