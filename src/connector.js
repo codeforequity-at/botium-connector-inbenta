@@ -12,7 +12,8 @@ const Capabilities = {
   INBENTA_ENV: 'INBENTA_ENV',
   INBENTA_LANG: 'INBENTA_LANG',
   INBENTA_TIMEZONE: 'INBENTA_TIMEZONE',
-  INBENTA_SKIP_WELCOME_MESSAGE: 'INBENTA_SKIP_WELCOME_MESSAGE'
+  INBENTA_SKIP_WELCOME_MESSAGE: 'INBENTA_SKIP_WELCOME_MESSAGE',
+  INBENTA_USE_VOTING: 'INBENTA_USE_VOTING'
 }
 
 const PATH_AUTH = '/auth'
@@ -271,7 +272,8 @@ class BotiumConnectorInbentaWebhook {
           botMsg.messageText += a.attributes.SIDEBUBBLE_TEXT
         }
 
-        if ((a.parameters && a.parameters.contents && a.parameters.contents.trackingCode && a.parameters.contents.trackingCode.rateCode) &&
+        if (!_.isNil(this.caps[Capabilities.INBENTA_USE_VOTING]) && this.caps[Capabilities.INBENTA_USE_VOTING] &&
+          (a.parameters && a.parameters.contents && a.parameters.contents.trackingCode && a.parameters.contents.trackingCode.rateCode) &&
             (!a.flags || !a.flags.includes('no-rating')) &&
             (!a.attributes || !a.attributes.RATINGS !== 'FALSE')
         ) {

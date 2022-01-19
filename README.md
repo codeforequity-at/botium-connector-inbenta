@@ -98,3 +98,8 @@ Example: "America/New_York"
 ### INBENTA_SKIP_WELCOME_MESSAGE
 Skip welcome message request on conversation start.
 
+### INBENTA_USE_VOTING
+Activate voting support. Voting is an experimental feature of the connector, it might not work always as expected. 
+
+Known issues: Supports just english, and it is not possible to automate it (voting ID is generated for every conversation)
+  
