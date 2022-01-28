@@ -64,9 +64,15 @@ class BotiumConnectorInbentaWebhook {
 
   async Stop () {
     debug('Stop called')
-    this.accessToken = null
     this.sessionToken = null
     this.sessionId = null
+  }
+
+  async Clean () {
+    debug('Clean called')
+    this.sessionToken = null
+    this.sessionId = null
+    this.accessToken = null
     this.chatbotAPI = null
   }
 
