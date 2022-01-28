@@ -45,8 +45,6 @@ class BotiumConnectorInbentaWebhook {
 
     if (!this.caps[Capabilities.INBENTA_API_KEY]) throw new Error('INBENTA_API_KEY capability required')
     if (!this.caps[Capabilities.INBENTA_SECRET]) throw new Error('INBENTA_SECRET capability required')
-
-    return Promise.resolve()
   }
 
   async Start () {
