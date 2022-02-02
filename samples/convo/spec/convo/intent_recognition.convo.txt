@@ -1,0 +1,11 @@
+intent recognition
+
+#bot
+Hi, how can I help you?
+
+#me
+Give me pizza!
+
+#bot
+INTENT Order pizza
+INTENT_CONFIDENCE 90

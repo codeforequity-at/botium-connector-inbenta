@@ -7,7 +7,7 @@ Hi, how can I help you?
 help
 
 #bot
-INTENT AIML
+INTENT AIML_UNSPECIFIED
 INTENT_CONFIDENCE 100
 Helping you is my #1 priority. What would you like to know?
 

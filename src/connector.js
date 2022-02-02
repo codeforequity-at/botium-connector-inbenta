@@ -248,13 +248,10 @@ class BotiumConnectorInbentaWebhook {
       for (const a of answers) {
         const botMsg = { sourceData: a, messageText: a.messageList.join(' '), buttons: [] }
         let intent
-        if (a.parameters && a.parameters.contents && a.parameters.contents.title) {
-          intent = { name: a.parameters.contents.title, confidence: a.intent ? a.intent.score : null }
-        } else if (a.attributes && a.attributes.title) {
-          // teoretically its the same, but who knows?
-          intent = { name: a.attributes.title, confidence: a.intent ? a.intent.score : null }
+        if (a.attributes && a.attributes.inbMainTitle) {
+           intent = { name: a.attributes.inbMainTitle, confidence: a.intent ? a.intent.score : null }
         } else if (a.intent) {
-          intent = { name: a.intent.type, confidence: a.intent.score }
+          intent = { name: a.intent.type === 'AIML' ? 'AIML_UNSPECIFIED' : a.intent.type, confidence: a.intent.score }
         }
         if (intent) {
           if (intent.name === 'No Results' || intent.name === 'High Number of Unknown Words') {
