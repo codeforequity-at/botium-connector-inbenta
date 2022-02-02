@@ -29,9 +29,10 @@ const _includeRequest = (body, response) => {
 }
 
 class BotiumConnectorInbentaWebhook {
-  constructor ({ queueBotSays, caps }) {
+  constructor ({ queueBotSays, caps, bottleneck }) {
     this.queueBotSays = queueBotSays
     this.caps = caps
+    this.bottleneck = bottleneck || ((fn) => fn())
     this.accessToken = null
     this.sessionToken = null
     this.sessionId = null
@@ -44,8 +45,6 @@ class BotiumConnectorInbentaWebhook {
 
     if (!this.caps[Capabilities.INBENTA_API_KEY]) throw new Error('INBENTA_API_KEY capability required')
     if (!this.caps[Capabilities.INBENTA_SECRET]) throw new Error('INBENTA_SECRET capability required')
-
-    return Promise.resolve()
   }
 
   async Start () {
@@ -65,9 +64,15 @@ class BotiumConnectorInbentaWebhook {
 
   async Stop () {
     debug('Stop called')
-    this.accessToken = null
     this.sessionToken = null
     this.sessionId = null
+  }
+
+  async Clean () {
+    debug('Clean called')
+    this.sessionToken = null
+    this.sessionId = null
+    this.accessToken = null
     this.chatbotAPI = null
   }
 
@@ -99,7 +104,7 @@ class BotiumConnectorInbentaWebhook {
 
     debug(`constructed requestOptions for authenticating ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return rp(requestOptions).then(({ response, body }) => {
+    return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
       if (response.statusCode >= 400) {
         debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -152,7 +157,7 @@ class BotiumConnectorInbentaWebhook {
 
     debug(`constructed requestOptions for starting conversations ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return rp(requestOptions).then(({ response, body }) => {
+    return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
       if (response.statusCode >= 400) {
         debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -200,7 +205,7 @@ class BotiumConnectorInbentaWebhook {
               json: true,
               transform: _includeRequest
             }
-            return rp(requestOptions).then(({ response, body }) => {
+            return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
               if (response.statusCode >= 400) {
                 debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
                 throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -238,7 +243,7 @@ class BotiumConnectorInbentaWebhook {
 
     debug(`constructed requestOptions for conversation step ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return rp(requestOptions).then(({ response, body }) => {
+    return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
       if (response.statusCode >= 400) {
         debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
