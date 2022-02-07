@@ -103,3 +103,11 @@ Activate voting support. Voting is an experimental feature of the connector, it 
 
 Known issues: Supports just english, and it is not possible to automate it (voting ID is generated for every conversation)
   
+### INBENTA_EDITOR_API_KEY
+Inbenta Editor API is required for download/upload Test Set. You can read about it [here](https://developers.inbenta.io/chatbot/editor-api/editor-api-setup)
+
+### INBENTA_EDITOR_SECRET
+Inbenta Editor API is required for download/upload Test Set. You can read about it [here](https://developers.inbenta.io/chatbot/editor-api/editor-api-setup)
+
+### INBENTA_EDITOR_PERSONAL_SECRET
+Inbenta Personal Secret is required for download/upload Test Set. You can read about it [here](https://help.inbenta.com/en/general/platform-overview/administration/managing-credentials-for-developers/managing-your-ups-tokens/)

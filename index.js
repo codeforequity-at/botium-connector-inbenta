@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const PluginClass = require('./src/connector')
-const { importHandler, importArgs } = require('./src/intents')
+const { importHandler, importArgs, exportHandler, exportArgs } = require('./src/intents')
 
 const logo = fs.readFileSync(path.join(__dirname, 'logo.png')).toString('base64')
 
@@ -12,6 +12,10 @@ module.exports = {
     Handler: importHandler,
     Args: importArgs
   },
+  Export: {
+    Handler: exportHandler,
+    Args: exportArgs
+  },
   PluginDesc: {
     name: 'Inbenta',
     provider: 'Inbenta',
@@ -20,7 +24,7 @@ module.exports = {
       intentResolution: true,
       intentConfidenceScore: true,
       testCaseGeneration: true,
-      testCaseExport: false
+      testCaseExport: true
     },
     capabilities: [
       {

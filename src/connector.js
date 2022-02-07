@@ -254,7 +254,7 @@ class BotiumConnectorInbentaWebhook {
         const botMsg = { sourceData: a, messageText: a.messageList.join(' '), buttons: [] }
         let intent
         if (a.attributes && a.attributes.inbMainTitle) {
-           intent = { name: a.attributes.inbMainTitle, confidence: a.intent ? a.intent.score : null }
+          intent = { name: a.attributes.inbMainTitle, confidence: a.intent ? a.intent.score : null }
         } else if (a.intent) {
           intent = { name: a.intent.type === 'AIML' ? 'AIML_UNSPECIFIED' : a.intent.type, confidence: a.intent.score }
         }
