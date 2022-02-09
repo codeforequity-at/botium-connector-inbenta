@@ -11,10 +11,7 @@ const getCaps = (caps) => {
 
 const CONTENT_PAGE_SIZE = 100
 
-const getContent = async ({ caps }) => {
-  const driver = new BotDriver(getCaps(caps))
-  const container = await driver.Build()
-
+const getContent = async ({ container }) => {
   if (!container.pluginInstance.caps.INBENTA_EDITOR_API_KEY) throw new Error('INBENTA_EDITOR_API_KEY capability required')
   if (!container.pluginInstance.caps.INBENTA_EDITOR_SECRET) throw new Error('INBENTA_EDITOR_SECRET capability required')
   if (!container.pluginInstance.caps.INBENTA_EDITOR_PERSONAL_SECRET) throw new Error('INBENTA_EDITOR_PERSONAL_SECRET capability required')
@@ -66,7 +63,6 @@ const getContent = async ({ caps }) => {
     }
   }
 
-
   const validContent = allContent.filter(c => c.title && c.status === 'active')
   debug(`Got ${validContent.length} valid NLU content items, ignoring ${allContent.length - validContent.length} content items because no title, or not active`)
 
@@ -88,36 +84,6 @@ const createUpdateIntent = async (container, intent, inbentaAuth) => {
     // create new intents in default folder
     intent.categories = [1]
     intent.status = 'active'
-    intent.attributes.push({
-      'name': 'ANSWER_TEXT',
-      'objects': [
-        {
-          'value': 'To find your past orders, click here to go to your Order History page.'
-        }
-      ]
-    })
-
-    intent =
-      {
-          "title": "How to find your past orders",
-          "categories": [
-              1,
-              2,
-              3
-          ],
-          "status": "active",
-          "useForPopular": true,
-          "attributes": [
-              {
-                  "name": "ANSWER_TEXT",
-                  "objects": [
-                      {
-                          "value": "To find your past orders, click here to go to your Order History page."
-                      }
-                  ]
-              }
-          ]
-      }
   }
   inbentaAuth = await runInbentaAuth({
     apiVersion: container.pluginInstance.caps.INBENTA_API_VERSION || 'v1',
@@ -134,26 +100,7 @@ const createUpdateIntent = async (container, intent, inbentaAuth) => {
       Authorization: `Bearer ${inbentaAuth.accessToken}`,
       'X-Inbenta-Key': container.pluginInstance.caps.INBENTA_EDITOR_API_KEY
     },
-    body: {
-      "title": "How to find your past orders",
-      "categories": [
-        1,
-        2,
-        3
-      ],
-      "status": "active",
-      "useForPopular": true,
-      "attributes": [
-        {
-          "name": "ANSWER_TEXT",
-          "objects": [
-            {
-              "value": "To find your past orders, click here to go to your Order History page."
-            }
-          ]
-        }
-      ]
-    },
+    body: intent,
     json: true,
     transform: (body, response) => ({
       response,
@@ -162,7 +109,7 @@ const createUpdateIntent = async (container, intent, inbentaAuth) => {
   }
   debug(`Constructed requestOptions for intent ${intent.id}: ${JSON.stringify(requestOptions, null, 2)}`)
 
-  const { body, response } = await rp(requestOptions)
+  const { response } = await rp(requestOptions)
   if (response.statusCode >= 400) {
     debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
     throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -172,7 +119,6 @@ const createUpdateIntent = async (container, intent, inbentaAuth) => {
 }
 
 const importInbentaIntents = async ({ caps, versionId, buildconvos }) => {
-
   const driver = new BotDriver(getCaps(caps))
   const container = await driver.Build()
   const { validContent } = await getContent({ container })
@@ -180,7 +126,6 @@ const importInbentaIntents = async ({ caps, versionId, buildconvos }) => {
   const convos = []
   const utterances = []
 
-  debug(`Got ${validContent.length} valid NLU content items, ignoring ${allContent.length - validContent.length} content items because no title`)
   for (const content of validContent) {
     const intentName = content.title
 
@@ -248,20 +193,20 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
   const setCheckedUtterances = new Set()
   for (const content of validContent) {
     const intentName = content.title
-    let botiumUtterances = (utterances.find(u => u.name === intentName) || {}).utterances
+    const botiumUtterances = (utterances.find(u => u.name === intentName) || {}).utterances
     if (setCheckedUtterances.has(intentName) || !botiumUtterances) {
       //  setCheckedUtterances.has(intentName):
       // intent name is not unique in inbenta. For us, it is. We can work just on the first
       // Same for import. So if the order is not constant, it can happen that we overwrite the wrong intent on export.
       continue
     }
-    setCheckedUtterances.push(intentName)
+    setCheckedUtterances.add(intentName)
 
     const inbentaUtterances = [
       content.title
     ]
     let deleted = 0
-    let inserted = 0
+    let added = 0
 
     content.attributes = content.attributes || []
     let alternativeTitles = content.attributes.find(a => a.name === 'ALTERNATIVE_TITLE')
@@ -275,8 +220,8 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
 
     if (alternativeTitles.objects.length > 0) {
       alternativeTitles.objects.forEach(o => inbentaUtterances.push(o.value))
-      if (deleteOldUtterances && botiumUtterances) {
-        const newObjects = alternativeTitles.objects.filter(o => !botiumUtterances.includes(o.value))
+      if (deleteOldUtterances) {
+        const newObjects = alternativeTitles.objects.filter(o => botiumUtterances.includes(o.value))
         deleted += alternativeTitles.objects.length - newObjects.length
         alternativeTitles.objects = newObjects
       }
@@ -284,17 +229,17 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
     const moderateExpanded = content.attributes && content.attributes.find(a => a.name === 'MODERATE_EXPANDED')
     if (moderateExpanded && moderateExpanded.objects && moderateExpanded.objects.length > 0) {
       moderateExpanded.objects.forEach(o => inbentaUtterances.push(o.value))
-      if (deleteOldUtterances && botiumUtterances) {
+      if (deleteOldUtterances) {
         const newObjects = moderateExpanded.objects.filter(o => !botiumUtterances.includes(o.value))
         deleted += moderateExpanded.objects.length - newObjects.length
         moderateExpanded.objects = newObjects
       }
     }
     if (botiumUtterances) {
-      const utterancesToAdd = botiumUtterances.utterances.filter(u => !inbentaUtterances.includes(u))
+      const utterancesToAdd = botiumUtterances.filter(u => !inbentaUtterances.includes(u))
       added += utterancesToAdd.length
       if (utterancesToAdd.length > 0) {
-        alternativeTitles.objects = alternativeTitles.objects.concat(utterancesToAdd)
+        alternativeTitles.objects = alternativeTitles.objects.concat(utterancesToAdd.map(u => ({ value: u })))
       }
     }
     if (added || deleted) {
@@ -308,7 +253,6 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
       } catch (err) {
         throw new Error(`Failed to update intent. ${err.message || err}:  ${JSON.stringify(intentToUpdate)}`)
       }
-
     }
   }
 
@@ -328,8 +272,8 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
     const intentToWrite = {
       title: utteranceStruct.name,
       attributes: [{
-        'name': 'ALTERNATIVE_TITLE',
-        'objects': utterancesToWrite.map(u => ({
+        name: 'ALTERNATIVE_TITLE',
+        objects: utterancesToWrite.map(u => ({
           value: u
         }))
       }]
