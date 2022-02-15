@@ -179,6 +179,8 @@ class BotiumConnectorInbentaWebhook {
   }
 
   async _sendMessage ({ msg, justWelcomeMessage }) {
+    // UserSays is already wrapped into bottleneck
+    const proxy = justWelcomeMessage ? this.bottleneck : (fn) => fn()
     const headers = {
       // eslint-disable-next-line quote-props
       'Authorization': `Bearer ${this.accessToken}`,
@@ -205,7 +207,7 @@ class BotiumConnectorInbentaWebhook {
               json: true,
               transform: _includeRequest
             }
-            return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
+            return proxy(() => rp(requestOptions)).then(({ response, body }) => {
               if (response.statusCode >= 400) {
                 debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
                 throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
@@ -243,7 +245,7 @@ class BotiumConnectorInbentaWebhook {
 
     debug(`constructed requestOptions for conversation step ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
+    return proxy(() => rp(requestOptions)).then(({ response, body }) => {
       if (response.statusCode >= 400) {
         debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
