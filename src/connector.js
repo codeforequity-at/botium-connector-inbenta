@@ -28,6 +28,14 @@ const _includeRequest = (body, response) => {
   return { response, body }
 }
 
+const _extractErrMessage = (err) => {
+  if (err.name === 'StatusCodeError') {
+    const bodyMsg = _.get(err, 'error.error.message')
+    if (bodyMsg) return `${bodyMsg}`
+  }
+  return err.message
+}
+
 class BotiumConnectorInbentaWebhook {
   constructor ({ queueBotSays, caps, bottleneck }) {
     this.queueBotSays = queueBotSays
@@ -123,6 +131,9 @@ class BotiumConnectorInbentaWebhook {
       this.expires_in = body.expires_in
 
       debug(`Authenticated: ${JSON.stringify(body, null, 2)}`)
+    }).catch(err => {
+      debug(`Failed to authenticate ${err}`)
+      throw new Error(_extractErrMessage(err))
     })
   }
 
@@ -174,6 +185,9 @@ class BotiumConnectorInbentaWebhook {
       debug(`Conversation initiated: ${JSON.stringify(body, null, 2)}`)
       this.sessionToken = body.sessionToken
       this.sessionId = body.sessionId
+    }).catch(err => {
+      debug(`Failed to start conversation ${err}`)
+      throw new Error(_extractErrMessage(err))
     })
   }
 
@@ -214,7 +228,7 @@ class BotiumConnectorInbentaWebhook {
               debug('Rate event sent succesful')
             }).catch(err => {
               debug(`Failed to send event ${err}`)
-              throw new Error(`Failed to send event ${err}`)
+              throw new Error(_extractErrMessage(err))
             })
           }
         } catch (err) {}
@@ -297,7 +311,7 @@ class BotiumConnectorInbentaWebhook {
       }
     }).catch(err => {
       debug(`Failed to send message ${err}`)
-      throw new Error(`Failed to send message ${err}`)
+      throw new Error(_extractErrMessage(err))
     })
   }
 }
