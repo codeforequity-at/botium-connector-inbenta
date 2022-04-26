@@ -184,7 +184,7 @@ const importInbentaIntents = async ({ caps, versionId, buildconvos }) => {
         convos.push(convo)
       }
     } else {
-      debug(`It looks like intent name ${intentName} is not unique`)
+      debug(`It looks like intent name ${content.title} is not unique`)
     }
   }
 
@@ -262,7 +262,7 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
       }
       try {
         inbentaAuth = await createUpdateIntent(container, intentToUpdate, inbentaAuth)
-        debug(`Updated intent (by ${byExternalId ?  'id: ' + content.id : 'title: ' + content.title}) ${botiumUtterancesStruct.name} added ${added} deleted ${deleted} title changed ${intentNameChanged}`)
+        debug(`Updated intent (by ${byExternalId ? 'id: ' + content.id : 'title: ' + content.title}) ${botiumUtterancesStruct.name} added ${added} deleted ${deleted} title changed ${intentNameChanged}`)
       } catch (err) {
         throw new Error(`Failed to update intent. ${err.message || err}:  ${JSON.stringify(intentToUpdate)}`)
       }
