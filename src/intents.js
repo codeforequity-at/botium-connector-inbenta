@@ -107,7 +107,7 @@ const createUpdateIntent = async (container, intent, inbentaAuth) => {
       body
     })
   }
-  debug(`Constructed requestOptions for intent ${intent.id}: ${JSON.stringify(requestOptions, null, 2)}`)
+  debug(`Constructed requestOptions for intent ${intent.title}-${intent.id || 'NO-ID'}: ${JSON.stringify(requestOptions, null, 2)}`)
 
   const { response } = await rp(requestOptions)
   if (response.statusCode >= 400) {
@@ -127,8 +127,6 @@ const importInbentaIntents = async ({ caps, versionId, buildconvos }) => {
   const utterances = []
 
   for (const content of validContent) {
-    const intentName = content.title
-
     const phrases = [
       content.title
     ]
@@ -144,41 +142,52 @@ const importInbentaIntents = async ({ caps, versionId, buildconvos }) => {
     }
     // intent name is not unique in inbenta. For us, it is. We can work just on the first
     // Same for export. So if the order is not constant, it can happen that we overwrite the wrong intent on export.
-    if (!utterances.find(u => u.intentName === intentName)) {
-      utterances.push({
-        name: intentName,
+    if (!utterances.find(u => u.intentName === content.title)) {
+      const utterance = {
+        name: buildconvos ? content.title.replace(/ /g, '_') + '_utt' : content.title,
+        externalId: `${content.id}`,
         utterances: _.uniq(phrases.filter(p => p))
-      })
+      }
+      utterances.push(utterance)
+      const getAttributeEntry = (fieldname) => {
+        const struct = content.attributes && content.attributes.find(a => a.name === fieldname)
+        if (!struct || !struct.objects || struct.objects.length === 0) {
+          return ''
+        }
+        return struct.objects[0].value
+      }
+      if (buildconvos) {
+        const botMessage = getAttributeEntry('ANSWER_TEXT')
+        const sidebubble = getAttributeEntry('SIDEBUBBLE_TEXT')
+        const convo = {
+          header: {
+            name: content.title,
+            externalId: `${content.id}`
+          },
+          conversation: [
+            {
+              sender: 'me',
+              messageText: utterance.name
+            },
+            {
+              sender: 'bot',
+              messageText: botMessage + sidebubble,
+              asserters: [
+                {
+                  name: 'INTENT',
+                  args: [content.title]
+                }
+              ]
+            }
+          ]
+        }
+        convos.push(convo)
+      }
     } else {
       debug(`It looks like intent name ${intentName} is not unique`)
     }
   }
 
-  if (buildconvos) {
-    for (const utterance of utterances) {
-      const convo = {
-        header: {
-          name: utterance.name
-        },
-        conversation: [
-          {
-            sender: 'me',
-            messageText: utterance.name
-          },
-          {
-            sender: 'bot',
-            asserters: [
-              {
-                name: 'INTENT',
-                args: [utterance.name]
-              }
-            ]
-          }
-        ]
-      }
-      convos.push(convo)
-    }
-  }
   return {
     convos,
     utterances
@@ -192,21 +201,24 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
 
   const setCheckedUtterances = new Set()
   for (const content of validContent) {
-    const intentName = content.title
-    const botiumUtterances = (utterances.find(u => u.name === intentName) || {}).utterances
-    if (setCheckedUtterances.has(intentName) || !botiumUtterances) {
-      //  setCheckedUtterances.has(intentName):
+    // searching for utterance via name. Maybe it is not created via connector export
+    const byExternalId = utterances.find(u => u.externalId && u.externalId === `${content.id}`)
+    const botiumUtterancesStruct = byExternalId || utterances.find(u => !u.externalId && u.name === content.title) || {}
+    const botiumUtterances = botiumUtterancesStruct.utterances
+    let deleted = 0
+    let added = 0
+    let intentNameChanged = false
+    intentNameChanged = botiumUtterancesStruct.name !== content.title
+    if (setCheckedUtterances.has(botiumUtterancesStruct.name) || !botiumUtterances) {
       // intent name is not unique in inbenta. For us, it is. We can work just on the first
       // Same for import. So if the order is not constant, it can happen that we overwrite the wrong intent on export.
       continue
     }
-    setCheckedUtterances.add(intentName)
+    setCheckedUtterances.add(botiumUtterancesStruct.name)
 
     const inbentaUtterances = [
       content.title
     ]
-    let deleted = 0
-    let added = 0
 
     content.attributes = content.attributes || []
     let alternativeTitles = content.attributes.find(a => a.name === 'ALTERNATIVE_TITLE')
@@ -242,14 +254,15 @@ const exportInbentaIntents = async ({ caps, deleteOldUtterances }, { utterances,
         alternativeTitles.objects = alternativeTitles.objects.concat(utterancesToAdd.map(u => ({ value: u })))
       }
     }
-    if (added || deleted) {
+    if (added || deleted || intentNameChanged) {
       const intentToUpdate = {
         id: content.id,
+        title: botiumUtterancesStruct.name,
         attributes: content.attributes
       }
       try {
         inbentaAuth = await createUpdateIntent(container, intentToUpdate, inbentaAuth)
-        debug(`Updated intent ${intentName} added ${added} deleted ${deleted}`)
+        debug(`Updated intent (by ${byExternalId ?  'id: ' + content.id : 'title: ' + content.title}) ${botiumUtterancesStruct.name} added ${added} deleted ${deleted} title changed ${intentNameChanged}`)
       } catch (err) {
         throw new Error(`Failed to update intent. ${err.message || err}:  ${JSON.stringify(intentToUpdate)}`)
       }
@@ -316,10 +329,9 @@ module.exports = {
       skipCli: true
     },
     deleteOldUtterances: {
-      describe: 'Delete old utterances',
+      describe: 'Delete samples in Inbenta Knowledge Base not exist in a Botium utterance (If a Botium utterance is missing, then the samples in Inbenta Knowledge Base will be intact)',
       type: 'boolean',
-      default: true
+      default: false
     }
   }
-
 }

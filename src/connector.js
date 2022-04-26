@@ -134,7 +134,6 @@ class BotiumConnectorInbentaWebhook {
       'X-Inbenta-Source': this.caps[Capabilities.INBENTA_SOURCE] || 'Botium',
       // production is the default by Inbenta, but for testing development looks better default
       'X-Inbenta-Env': this.caps[Capabilities.INBENTA_ENV] || 'development'
-
     }
     if (!_.isNil(this.caps[Capabilities.INBENTA_USER_TYPE])) {
       headers['X-Inbenta-User-Type'] = this.caps[Capabilities.INBENTA_USER_TYPE]
