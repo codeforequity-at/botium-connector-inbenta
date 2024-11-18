@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const rp = require('request-promise-native')
 const { BotDriver } = require('botium-core')
 const { runInbentaAuth } = require('./helper')
 const debug = require('debug')('botium-connector-inbenta-intents')
@@ -38,20 +37,16 @@ const getContent = async ({ container }) => {
       qs: {
         length: CONTENT_PAGE_SIZE,
         offset: page * CONTENT_PAGE_SIZE
-      },
-      json: true,
-      transform: (body, response) => ({
-        response,
-        body
-      })
+      }
     }
     debug(`Constructed requestOptions for content page ${page}: ${JSON.stringify(requestOptions, null, 2)}`)
 
-    const { body, response } = await rp(requestOptions)
-    if (response.statusCode >= 400) {
-      debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
-      throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
+    const response = await fetch(new URL('?' + new URLSearchParams(requestOptions.qs).toString(), requestOptions.uri).toString(), requestOptions)
+    if (!response.ok) {
+      debug(`got error response: ${response.status}/${response.statusText}`)
+      throw new Error(`got error response: ${response.status}/${response.statusText}`)
     }
+    const body = await response.json()
     if (body && body.data && body.data.items && body.data.items.length > 0) {
       debug(`Got ${body.data.items.length} content items for content page ${page}`)
       body.data.items.forEach(i => allContent.push(i))
@@ -98,21 +93,17 @@ const createUpdateIntent = async (container, intent, inbentaAuth) => {
     method: intent.id ? 'PATCH' : 'POST',
     headers: {
       Authorization: `Bearer ${inbentaAuth.accessToken}`,
-      'X-Inbenta-Key': container.pluginInstance.caps.INBENTA_EDITOR_API_KEY
+      'X-Inbenta-Key': container.pluginInstance.caps.INBENTA_EDITOR_API_KEY,
+      'Content-Type': 'application/json'
     },
-    body: intent,
-    json: true,
-    transform: (body, response) => ({
-      response,
-      body
-    })
+    body: JSON.stringify(intent)
   }
   debug(`Constructed requestOptions for intent ${intent.title}-${intent.id || 'NO-ID'}: ${JSON.stringify(requestOptions, null, 2)}`)
 
-  const { response } = await rp(requestOptions)
-  if (response.statusCode >= 400) {
-    debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
-    throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
+  const response = await fetch(requestOptions.uri, requestOptions)
+  if (!response.ok) {
+    debug(`got error response: ${response.status}/${response.statusText}`)
+    throw new Error(`got error response: ${response.status}/${response.statusText}`)
   }
 
   return inbentaAuth

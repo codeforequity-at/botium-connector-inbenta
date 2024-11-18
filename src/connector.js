@@ -1,5 +1,4 @@
 const util = require('util')
-const rp = require('request-promise-native')
 const _ = require('lodash')
 const debug = require('debug')('botium-connector-inbenta-webhook')
 
@@ -23,10 +22,6 @@ const PATH_TRACKING_EVENTS = '/tracking/events'
 
 // sec. we cant get access token if its already expired. We need a small gap there
 const MIN_TOKEN_TTL = 5
-
-const _includeRequest = (body, response) => {
-  return { response, body }
-}
 
 const _extractErrMessage = (err) => {
   if (err.name === 'StatusCodeError') {
@@ -101,22 +96,23 @@ class BotiumConnectorInbentaWebhook {
       uri: `https://api.inbenta.io/${this.apiVersion}` + PATH_AUTH,
       method: 'POST',
       headers: {
-        'X-Inbenta-Key': this.caps[Capabilities.INBENTA_API_KEY]
+        'X-Inbenta-Key': this.caps[Capabilities.INBENTA_API_KEY],
+        'Content-Type': 'application/json'
       },
-      body: {
+      body: JSON.stringify({
         secret: this.caps[Capabilities.INBENTA_SECRET]
-      },
-      json: true,
-      transform: _includeRequest
+      })
     }
 
     debug(`constructed requestOptions for authenticating ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
-      if (response.statusCode >= 400) {
-        debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
-        throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
+    try {
+      const response = await this.bottleneck(() => fetch(requestOptions.uri, requestOptions))
+      if (!response.ok) {
+        debug(`got error response: ${response.status}/${response.statusText}`)
+        throw new Error(`got error response: ${response.status}/${response.statusText}`)
       }
+      const body = await response.json()
       if (!body.accessToken) {
         debug(`Access token not found in auth response ${JSON.stringify(body)}`)
         throw new Error('Access token not found in auth response', body)
@@ -131,10 +127,10 @@ class BotiumConnectorInbentaWebhook {
       this.expires_in = body.expires_in
 
       debug(`Authenticated: ${JSON.stringify(body, null, 2)}`)
-    }).catch(err => {
+    } catch (err) {
       debug(`Failed to authenticate ${err}`)
       throw new Error(_extractErrMessage(err))
-    })
+    }
   }
 
   async _startConversation () {
@@ -160,19 +156,19 @@ class BotiumConnectorInbentaWebhook {
       uri: this.chatbotAPI + PATH_CONVERSATION,
       method: 'POST',
       headers,
-      body,
-      json: true,
-      transform: _includeRequest
+      body: JSON.stringify(body)
     }
 
     debug(`constructed requestOptions for starting conversations ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return this.bottleneck(() => rp(requestOptions)).then(({ response, body }) => {
-      if (response.statusCode >= 400) {
+    try {
+      const response = await this.bottleneck(() => fetch(requestOptions.uri, requestOptions))
+      if (!response.ok) {
         debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
       }
 
+      const body = await response.json()
       if (!body.sessionToken) {
         debug(`Session token not found in conversation response ${JSON.stringify(body)}`)
         throw new Error('Session token not found in conversation response', body)
@@ -185,10 +181,10 @@ class BotiumConnectorInbentaWebhook {
       debug(`Conversation initiated: ${JSON.stringify(body, null, 2)}`)
       this.sessionToken = body.sessionToken
       this.sessionId = body.sessionId
-    }).catch(err => {
+    } catch (err) {
       debug(`Failed to start conversation ${err}`)
       throw new Error(_extractErrMessage(err))
-    })
+    }
   }
 
   async _sendMessage ({ msg, justWelcomeMessage }) {
@@ -198,7 +194,8 @@ class BotiumConnectorInbentaWebhook {
       // eslint-disable-next-line quote-props
       'Authorization': `Bearer ${this.accessToken}`,
       'X-Inbenta-Key': this.caps[Capabilities.INBENTA_API_KEY],
-      'X-Inbenta-Session': `Bearer ${this.sessionToken}`
+      'X-Inbenta-Session': `Bearer ${this.sessionToken}`,
+      'Content-Type': 'application/json'
     }
     let body
 
@@ -207,23 +204,21 @@ class BotiumConnectorInbentaWebhook {
         directCall: 'sys-welcome'
       }
     } else if (msg.buttons && msg.buttons.length > 0 && (msg.buttons[0].payload || msg.buttons[0].text)) {
-      let payload = msg.buttons[0].payload
+      const payload = msg.buttons[0].payload
       if (payload) {
         try {
-          payload = JSON.parse(payload)
           if (payload.type === 'rate') {
             const requestOptions = {
               uri: this.chatbotAPI + PATH_TRACKING_EVENTS,
               method: 'POST',
               headers,
-              body: payload,
-              json: true,
-              transform: _includeRequest
+              body: payload
             }
-            return proxy(() => rp(requestOptions)).then(({ response, body }) => {
-              if (response.statusCode >= 400) {
-                debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
-                throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
+
+            return proxy(() => fetch(requestOptions.uri, requestOptions)).then(response => {
+              if (!response.ok) {
+                debug(`got error response: ${response.status}/${response.statusText}`)
+                throw new Error(`got error response: ${response.status}/${response.statusText}`)
               }
               debug('Rate event sent succesful')
             }).catch(err => {
@@ -251,18 +246,18 @@ class BotiumConnectorInbentaWebhook {
       uri: this.chatbotAPI + PATH_CONVERSATION_MESSAGE,
       method: 'POST',
       headers,
-      body,
-      json: true,
-      transform: _includeRequest
+      body: JSON.stringify(body)
     }
 
     debug(`constructed requestOptions for conversation step ${JSON.stringify(requestOptions, null, 2)}`)
 
-    return proxy(() => rp(requestOptions)).then(({ response, body }) => {
-      if (response.statusCode >= 400) {
+    try {
+      const response = await this.bottleneck(() => fetch(requestOptions.uri, requestOptions))
+      if (!response.ok) {
         debug(`got error response: ${response.statusCode}/${response.statusMessage}`)
         throw new Error(`got error response: ${response.statusCode}/${response.statusMessage}`)
       }
+      const body = await response.json()
       debug(`Conversation response: ${JSON.stringify(body, null, 2)}`)
       const answers = body.answers || []
       for (const a of answers) {
@@ -309,10 +304,10 @@ class BotiumConnectorInbentaWebhook {
           setTimeout(() => this.queueBotSays(botMsg), 0)
         }
       }
-    }).catch(err => {
+    } catch (err) {
       debug(`Failed to send message ${err}`)
       throw new Error(_extractErrMessage(err))
-    })
+    }
   }
 }
 
