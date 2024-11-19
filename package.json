@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run eslint && rollup -c && cp logo.png dist",
     "eslint": "eslint index.js src/**/*.js",
-     "test": "echo \"Placeholder\""
+    "test": "echo \"Placeholder\""
   },
   "repository": {
     "type": "git",
